@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hóa trị lớp 8 - Học mà chơi, nhớ siêu lâu</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(145deg, #1a2639 0%, #2a3b4c 100%); min-height: 100vh; padding: 1rem; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Header */
+        .header { text-align: center; color: white; margin-bottom: 2rem; padding: 1rem; }
+        .header h1 { font-size: 2.5rem; background: linear-gradient(135deg, #ffd166, #ff9f1c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); }
+
+        /* Tab Navigation */
+        .tabs { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .tab-btn.active { background: white; color: #1a2639; box-shadow: 0 5px 15px rgba(255,215,0,0.3); }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* General Card */
+        .section-card { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+
+        /* Knowledge Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
+        .el-card { background: white; padding: 15px; border-radius: 15px; border-left: 5px solid #ff9f1c; box-shadow: 0 5px 10px rgba(0,0,0,0.05); }
+        .el-symbol { font-size: 1.8rem; font-weight: 800; color: #1e2b3a; }
+
+        /* Flashcard */
+        .flash-container { perspective: 1000px; max-width: 400px; margin: 20px auto; height: 300px; }
+        .flashcard { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 2px solid white; }
+        .front { background: white; }
+        .back { background: #1e2b3a; color: white; transform: rotateY(180deg); }
+
+        /* Quiz */
+        .quiz-opt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .btn { padding: 12px; border-radius: 15px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; background: #edf2f7; }
+        .btn:hover { background: #ffd166; }
+        .btn-primary { background: #ff9f1c; color: white; }
+
+        /* Calc Tab */
+        .calc-q { background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; }
+        .equation-box { display: none; background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-family: monospace; font-size: 1.2rem; color: #2d3748; text-align: center; border: 2px dashed #cbd5e0; }
+        .equation-box.show { display: block; }
+        .calc-input { width: 120px; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e0; border-radius: 10px; margin: 10px; }
+        .hint-btn { background: #4a5568; color: white; padding: 5px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>⚗️ HÓA HỌC 8 - SMART</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="knowledge">📘 Kiến thức</button>
+        <button class="tab-btn" data-tab="flashcard">🎴 Flashcard</button>
+        <button class="tab-btn" data-tab="quiz">🧪 Luyện tập</button>
+        <button class="tab-btn" data-tab="calc">🧮 Tính toán</button>
+    </div>
+
+    <!-- Tab 1: Kiến thức -->
+    <div id="knowledge-tab" class="tab-content active">
+        <div class="section-card">
+            <input type="text" id="search" placeholder="Tìm nguyên tố hoặc hóa trị..." style="width:100%; padding:12px; border-radius:15px; border:1px solid #ddd; outline:none;">
+            <div class="grid" id="k-grid"></div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Flashcard -->
+    <div id="flashcard-tab" class="tab-content">
+        <div class="section-card" style="text-align: center;">
+            <div class="flash-container" onclick="this.querySelector('.flashcard').classList.toggle('flipped')">
+                <div class="flashcard">
+                    <div class="face front">
+                        <div id="f-symbol" style="font-size: 4rem; font-weight: 800; color: #1e2b3a;"></div>
+                        <div id="f-name" style="font-size: 1.5rem; color: #666;"></div>
+                    </div>
+                    <div class="face back">
+                        <div id="f-ht" style="font-size: 5rem; font-weight: 900; color: #ffd166;"></div>
+                        <p id="f-ex" style="opacity: 0.8;"></p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn" onclick="app.flash.prev()">◀ Trước</button>
+                <button class="btn btn-primary" onclick="app.flash.next()">Sau ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Quiz -->
+    <div id="quiz-tab" class="tab-content">
+        <div class="section-card" style="text-align: center;">
+            <div id="q-sym" style="font-size: 5rem; font-weight: 800;"></div>
+            <p id="q-name" style="font-size: 1.5rem; color: #666; margin-bottom: 20px;"></p>
+            <div class="quiz-opt" id="q-opts"></div>
+            <div id="q-msg" style="font-weight: 700; height: 24px; margin-bottom: 15px;"></div>
+            <button class="btn btn-primary" onclick="app.quiz.init()">Câu tiếp theo ▶</button>
+        </div>
+    </div>
+
+    <!-- Tab 4: Tính toán -->
+    <div id="calc-tab" class="tab-content">
+        <div class="section-card">
+            <h2 style="margin-bottom: 15px;">🧮 Bài tập tính theo PTHH</h2>
+            <div id="c-task" class="calc-q"></div>
+
+            <div style="margin-bottom: 20px;">
+                <button class="hint-btn" onclick="document.getElementById('c-eq').classList.toggle('show')">👁️ Hiện/Ẩn PTHH gợi ý</button>
+                <div id="c-eq" class="equation-box"></div>
+            </div>
+
+            <div style="text-align: center;">
+                <span>Kết quả (gam):</span>
+                <input type="number" step="0.01" id="c-input" class="calc-input">
+                <div id="c-msg" style="font-weight: 700; margin: 15px 0;"></div>
+                <div style="display: flex; justify-content: center; gap: 10px;">
+                    <button class="btn btn-primary" onclick="app.calc.check()">✅ Kiểm tra</button>
+                    <button class="btn" onclick="app.calc.init()">Đổi bài khác ⏭️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const elements = [
+        { symbol: 'H', name: 'Hiđro', hoaTri: 'I', category: 'hoa_tri_1', example: 'HCl', m: 1 },
+        { symbol: 'Li', name: 'Liti', hoaTri: 'I', category: 'hoa_tri_1', example: 'LiOH', m: 7 },
+        { symbol: 'Na', name: 'Natri', hoaTri: 'I', category: 'hoa_tri_1', example: 'NaCl', m: 23 },
+        { symbol: 'K', name: 'Kali', hoaTri: 'I', category: 'hoa_tri_1', example: 'KOH', m: 39 },
+        { symbol: 'Ag', name: 'Bạc', hoaTri: 'I', category: 'hoa_tri_1', example: 'AgNO3', m: 108 },
+        { symbol: 'Mg', name: 'Magie', hoaTri: 'II', category: 'hoa_tri_2', example: 'MgO', m: 24 },
+        { symbol: 'Ca', name: 'Canxi', hoaTri: 'II', category: 'hoa_tri_2', example: 'CaCO3', m: 40 },
+        { symbol: 'Ba', name: 'Bari', hoaTri: 'II', category: 'hoa_tri_2', example: 'BaSO4', m: 137 },
+        { symbol: 'Zn', name: 'Kẽm', hoaTri: 'II', category: 'hoa_tri_2', example: 'ZnO', m: 65 },
+        { symbol: 'O', name: 'Oxi', hoaTri: 'II', category: 'hoa_tri_2', example: 'H2O', m: 16 },
+        { symbol: 'Al', name: 'Nhôm', hoaTri: 'III', category: 'hoa_tri_3', example: 'Al2O3', m: 27 },
+        { symbol: 'C', name: 'Cacbon', hoaTri: 'II, IV', category: 'nhieu_hoa_tri', example: 'CO2', m: 12 },
+        { symbol: 'Si', name: 'Silic', hoaTri: 'IV', category: 'hoa_tri_4', example: 'SiO2', m: 28 },
+        { symbol: 'N', name: 'Nitơ', hoaTri: 'I, II, III, IV, V', category: 'nhieu_hoa_tri', example: 'N2O5', m: 14 },
+        { symbol: 'P', name: 'Photpho', hoaTri: 'III, V', category: 'nhieu_hoa_tri', example: 'P2O5', m: 31 },
+        { symbol: 'S', name: 'Lưu huỳnh', hoaTri: 'II, IV, VI', category: 'nhieu_hoa_tri', example: 'SO3', m: 32 },
+        { symbol: 'Fe', name: 'Sắt', hoaTri: 'II, III', category: 'nhieu_hoa_tri', example: 'Fe2O3', m: 56 },
+        { symbol: 'Cu', name: 'Đồng', hoaTri: 'I, II', category: 'nhieu_hoa_tri', example: 'CuO', m: 64 },
+        { symbol: 'Pb', name: 'Chì', hoaTri: 'II, IV', category: 'nhieu_hoa_tri', example: 'PbO2', m: 207 },
+        { symbol: 'OH', name: 'Hiđroxit', hoaTri: 'I', category: 'hoa_tri_1', example: 'NaOH', m: 17 },
+        { symbol: 'NO3', name: 'Nitrat', hoaTri: 'I', category: 'hoa_tri_1', example: 'KNO3', m: 62 },
+        { symbol: 'SO4', name: 'Sunfat', hoaTri: 'II', category: 'hoa_tri_2', example: 'H2SO4', m: 96 },
+        { symbol: 'CO3', name: 'Cacbonat', hoaTri: 'II', category: 'hoa_tri_2', example: 'CaCO3', m: 60 },
+        { symbol: 'PO4', name: 'Photphat', hoaTri: 'III', category: 'hoa_tri_3', example: 'Na3PO4', m: 95 }
+    ];
+
+    const app = {
+        currentAns: 0,
+        fIdx: 0,
+
+        init() {
+            this.bindTabs();
+            this.renderKnowledge();
+            this.flash.update();
+            this.quiz.init();
+            this.calc.init();
+        },
+
+        bindTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+                };
+            });
+        },
+
+        renderKnowledge() {
+            const grid = document.getElementById('k-grid');
+            const draw = (filter = '') => {
+                grid.innerHTML = elements
+                    .filter(e => e.name.toLowerCase().includes(filter) || e.symbol.toLowerCase().includes(filter))
+                    .map(e => `
+                <div class="el-card">
+                    <div class="el-symbol">${e.symbol}</div>
+                    <div style="font-weight:700">${e.name}</div>
+                    <div style="color:#ff9f1c; font-weight:800">Hóa trị: ${e.hoaTri}</div>
+                    <div style="font-size:0.8rem; color:#888">M = ${e.m}</div>
+                </div>`).join('');
+            };
+            document.getElementById('search').oninput = (e) => draw(e.target.value.toLowerCase());
+            draw();
+        },
+
+        flash: {
+            update() {
+                const e = elements[app.fIdx];
+                document.getElementById('f-symbol').innerText = e.symbol;
+                document.getElementById('f-name').innerText = e.name;
+                document.getElementById('f-ht').innerText = e.hoaTri;
+                document.getElementById('f-ex').innerText = "Ví dụ: " + e.example;
+                document.querySelector('.flashcard').classList.remove('flipped');
+            },
+            next() { app.fIdx = (app.fIdx + 1) % elements.length; this.update(); },
+            prev() { app.fIdx = (app.fIdx - 1 + elements.length) % elements.length; this.update(); }
+        },
+
+        quiz: {
+            curr: null,
+            init() {
+                this.curr = elements[Math.floor(Math.random() * elements.length)];
+                document.getElementById('q-sym').innerText = this.curr.symbol;
+                document.getElementById('q-name').innerText = this.curr.name;
+                document.getElementById('q-msg').innerText = '';
+
+                let opts = [this.curr.hoaTri];
+                while(opts.length < 4) {
+                    let r = elements[Math.floor(Math.random() * elements.length)].hoaTri;
+                    if(!opts.includes(r)) opts.push(r);
+                }
+                opts.sort(() => Math.random() - 0.5);
+                document.getElementById('q-opts').innerHTML = opts.map(o => `<button class="btn" onclick="app.quiz.check('${o}')">${o}</button>`).join('');
+            },
+            check(v) {
+                const m = document.getElementById('q-msg');
+                if(v === this.curr.hoaTri) { m.innerText = "✅ Chính xác!"; m.style.color = "green"; }
+                else { m.innerText = "❌ Đáp án đúng: " + this.curr.hoaTri; m.style.color = "red"; }
+            }
+        },
+
+        calc: {
+            init() {
+                document.getElementById('c-input').value = '';
+                document.getElementById('c-msg').innerText = '';
+                document.getElementById('c-eq').classList.remove('show');
+
+                const scenarios = [
+                    {
+                        text: (m1, m2) => `Đốt cháy hoàn toàn <b>${m1}g</b> kim loại Magie (Mg) trong khí Oxi (O2). Biết khối lượng Oxi đã phản ứng là <b>${m2}g</b>. Tính khối lượng Magie oxit (MgO) thu được?`,
+                        eq: "2Mg + O2 → 2MgO",
+                        run: () => {
+                            let mMg = (Math.floor(Math.random() * 5) + 1) * 2.4;
+                            let mO2 = (mMg / 48) * 32;
+                            return { q: scenarios[0].text(mMg.toFixed(1), mO2.toFixed(1)), e: scenarios[0].eq, a: (mMg + mO2).toFixed(2) };
+                        }
+                    },
+                    {
+                        text: (m) => `Cho <b>${m}g</b> kim loại Kẽm (Zn) tác dụng hoàn toàn với dung dịch axit clohiđric (HCl). Tính khối lượng khí Hiđro (H2) sinh ra? (Cho Zn=65, H=1)`,
+                        eq: "Zn + 2HCl → ZnCl2 + H2 ↑",
+                        run: () => {
+                            let mZn = (Math.floor(Math.random() * 5) + 1) * 6.5;
+                            let mH2 = (mZn / 65) * 2;
+                            return { q: scenarios[1].text(mZn.toFixed(1)), e: scenarios[1].eq, a: mH2.toFixed(2) };
+                        }
+                    },
+                    {
+                        text: (m) => `Nung nóng hoàn toàn <b>${m}g</b> đá vôi (CaCO3). Sau phản ứng thu được khí CO2 và bao nhiêu gam vôi sống (CaO)? (Cho Ca=40, C=12, O=16)`,
+                        eq: "CaCO3 —(t°)→ CaO + CO2 ↑",
+                        run: () => {
+                            let mCa = (Math.floor(Math.random() * 5) + 1) * 10;
+                            let mCaO = (mCa / 100) * 56;
+                            return { q: scenarios[2].text(mCa.toFixed(1)), e: scenarios[2].eq, a: mCaO.toFixed(2) };
+                        }
+                    }
+                ];
+
+                const s = scenarios[Math.floor(Math.random() * scenarios.length)];
+                const res = s.run();
+                document.getElementById('c-task').innerHTML = res.q;
+                document.getElementById('c-eq').innerText = "Hướng dẫn PTHH: " + res.e;
+                app.currentAns = res.a;
+            },
+            check() {
+                const val = parseFloat(document.getElementById('c-input').value);
+                const m = document.getElementById('c-msg');
+                if(Math.abs(val - app.currentAns) < 0.1) {
+                    m.innerText = "🌟 Quá giỏi! Kết quả chính xác."; m.style.color = "green";
+                } else {
+                    m.innerText = "💡 Sai rồi, đáp án đúng là " + app.currentAns + "g"; m.style.color = "red";
+                }
+            }
+        }
+    };
+
+    window.onload = () => app.init();
+</script>
+</body>
+</html>
